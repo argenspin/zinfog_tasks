@@ -9,13 +9,13 @@ class SaleOrder(models.Model):
     @api.onchange('include_delivery_charge','delivery_charge','order_line')
     def _onchange_delivery_charge(self):
         delivery_product = self.env['product.product'].search([('name','=','Delivery Charges')],limit=1)[0]
-        delivery_line = self.order_line.filtered(lambda line: line.is_delivery_charge)
+        delivery_lines = self.order_line.filtered(lambda line: line.is_delivery_charge)
         if self.include_delivery_charge and self.delivery_charge>0:
             total_without_delivery = 0
             for line in self.order_line.filtered(lambda line: not line.is_delivery_charge and not line.display_type):
                 total_without_delivery+=line.price_total
 
-            if not delivery_line:
+            if not delivery_lines:
                 data_list = self.order_line.ids
                 data_list.append(self.env['sale.order.line'].create({
                     'order_id': self._origin.id,
@@ -27,12 +27,13 @@ class SaleOrder(models.Model):
                 }).id)
                 self.update({'order_line': [(6,0,data_list)]})
             else:
-                delivery_line.update({
+                delivery_lines.update({
                     'price_unit': (total_without_delivery) * (self.delivery_charge/100),
                 })
         else:
-            if delivery_line:
-                self.update({'order_line': [(2,delivery_line.id)]})
+            if delivery_lines:
+                for delivery_line in delivery_lines:
+                    self.update({'order_line': [(2,delivery_line.id)]})
 
 class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"

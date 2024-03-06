@@ -6,7 +6,8 @@
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">    
             <xpath expr="//field[@name='payment_term_id']" position="after">
-                <field name="include_delivery_charge" force_save="1"/>
+                <field name="create_date" invisible="1"/>
+                <field name="include_delivery_charge" force_save="1" attrs="{'invisible': [('create_date','=',False)]}"/>
                 <field name="delivery_charge" attrs="{'invisible': [('include_delivery_charge','=',False)]}"/>
             </xpath>
 
